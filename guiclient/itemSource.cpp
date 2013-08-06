@@ -191,7 +191,7 @@ enum SetResponse itemSource::set(const ParameterList &pParams)
       _leadTime->setEnabled(FALSE);
       _notes->setEnabled(FALSE);
       _upcCode->setEnabled(FALSE);
-      _documents->setReadOnly(TRUE);
+//      _documents->setReadOnly(TRUE);
       _add->setEnabled(FALSE);
       _delete->setEnabled(FALSE);
       _close->setText(tr("&Close"));

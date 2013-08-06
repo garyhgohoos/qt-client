@@ -129,7 +129,7 @@ enum SetResponse miscVoucher::set(const ParameterList &pParams)
       _new->setEnabled(false);
       _flagFor1099->setEnabled(false);
       _notes->setEnabled(false);
-      _documents->setReadOnly(true);
+//      _documents->setReadOnly(true);
       _close->setText(tr("&Close"));
       _save->hide();
 

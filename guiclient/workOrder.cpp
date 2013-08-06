@@ -79,7 +79,7 @@ workOrder::workOrder(QWidget* parent, const char* name, Qt::WFlags fl)
   _lastWarehousid = _warehouse->id();
   _lastItemid = -1;
   _comments->setReadOnly(TRUE);
-  _documents->setReadOnly(TRUE);
+//  _documents->setReadOnly(TRUE);
   _woNumber->setValidator(omfgThis->orderVal());
   _qty->setValidator(omfgThis->qtyVal());
   _qtyReceived->setPrecision(omfgThis->qtyVal());
@@ -2027,7 +2027,7 @@ void workOrder::populate()
     _disassembly->setEnabled(false);
     _warehouse->setEnabled(false);
     _comments->setReadOnly(false);
-    _documents->setReadOnly(false);
+//    _documents->setReadOnly(false);
     _leadTimeLit->hide();
     _leadTime->hide();
     _daysLit->hide();

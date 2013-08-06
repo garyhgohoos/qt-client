@@ -259,7 +259,7 @@ enum SetResponse invoice::set(const ParameterList &pParams)
       _shipChrgs->setEnabled(FALSE);
       _shippingZone->setEnabled(FALSE);
       _saleType->setEnabled(FALSE);
-      _documents->setReadOnly(TRUE);
+//      _documents->setReadOnly(TRUE);
 
       disconnect(_invcitem, SIGNAL(valid(bool)), _edit, SLOT(setEnabled(bool)));
       disconnect(_invcitem, SIGNAL(valid(bool)), _delete, SLOT(setEnabled(bool)));

@@ -423,7 +423,7 @@ enum SetResponse salesOrder:: set(const ParameterList &pParams)
       _edit->setText(tr("View"));
       _cust->setType(CLineEdit::AllCustomersAndProspects);
       _comments->setReadOnly(true);
-      _documents->setReadOnly(true);
+//      _documents->setReadOnly(true);
       _copyToShipto->setEnabled(FALSE);
       _orderCurrency->setEnabled(FALSE);
       _paymentInformation->removeTab(_paymentInformation->indexOf(_cashPage));

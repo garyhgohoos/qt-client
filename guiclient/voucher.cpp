@@ -161,7 +161,7 @@ enum SetResponse voucher::set(const ParameterList &pParams)
       _flagFor1099->setEnabled(FALSE);
       _distributeall->setEnabled(FALSE);
       _notes->setEnabled(false);
-      _documents->setReadOnly(TRUE);
+//      _documents->setReadOnly(TRUE);
       _close->setText(tr("&Close"));
       _save->hide();
 
