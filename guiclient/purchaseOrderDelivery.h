@@ -8,22 +8,22 @@
  * to be bound by its terms.
  */
 
-#ifndef PURCHASEORDERITEM_H
-#define PURCHASEORDERITEM_H
+#ifndef PURCHASEORDERDELIVERY_H
+#define PURCHASEORDERDELIVERY_H
 
 #include "guiclient.h"
 #include "xdialog.h"
 #include <QStandardItemModel>
 #include <parameter.h>
-#include "ui_purchaseOrderItem.h"
+#include "ui_purchaseOrderDelivery.h"
 
-class purchaseOrderItem : public XDialog, public Ui::purchaseOrderItem
+class purchaseOrderDelivery : public XDialog, public Ui::purchaseOrderDelivery
 {
     Q_OBJECT
 
 public:
-    purchaseOrderItem(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WFlags fl = 0);
-    ~purchaseOrderItem();
+    purchaseOrderDelivery(QWidget* parent = 0, const char* name = 0, bool modal = false, Qt::WFlags fl = 0);
+    ~purchaseOrderDelivery();
 
   
     virtual void  prepare();
@@ -33,28 +33,11 @@ public:
 public slots:
     virtual SetResponse set( const ParameterList & pParams );
     virtual void populate();
-    virtual void sDeterminePrice();
-    virtual void sCalculateTax();        // new function added
-    virtual void sTaxDetail();           // new function added
 
 protected slots:
     virtual void languageChange();
 
     virtual void sSave();
-    virtual void sNewDelivery();
-    virtual void sEditDelivery();
-    virtual void sDeleteDelivery();
-    virtual void sFillList();
-    virtual void sPopulateExtPrice();
-    virtual void sFindWarehouseItemsites( int pId );
-    virtual void sPopulateItemInfo( int pItemid );
-    virtual void sPopulateItemsiteInfo();
-    virtual void sPopulateItemSourceInfo( int pItemsrcid );
-    virtual void sInventoryItemToggled( bool yes );
-    virtual void sVendorItemNumberSearch();
-    virtual void sVendorItemNumberList();
-    virtual void sHandleButtons();
-    virtual void sVendorListPrices();
 
 
 private:
@@ -81,4 +64,4 @@ private:
 
 };
 
-#endif // PURCHASEORDERITEM_H
+#endif // PURCHASEORDERDELIVERY_H

@@ -23,6 +23,7 @@
 #include "itemCharacteristicDelegate.h"
 #include "itemSourceSearch.h"
 #include "itemSourceList.h"
+#include "purchaseOrderDelivery.h"
 #include "vendorPriceList.h"
 
 purchaseOrderItem::purchaseOrderItem(QWidget* parent, const char* name, bool modal, Qt::WFlags fl)
@@ -47,18 +48,21 @@ purchaseOrderItem::purchaseOrderItem(QWidget* parent, const char* name, bool mod
   _costmethod = "";
   _captive = false;
 
-  connect(_ordered, SIGNAL(editingFinished()), this, SLOT(sDeterminePrice()));
-  connect(_inventoryItem, SIGNAL(toggled(bool)), this, SLOT(sInventoryItemToggled(bool)));
-  connect(_item, SIGNAL(privateIdChanged(int)), this, SLOT(sFindWarehouseItemsites(int)));
-  connect(_item, SIGNAL(newId(int)), this, SLOT(sPopulateItemInfo(int)));
-  connect(_warehouse, SIGNAL(newID(int)), this, SLOT(sPopulateItemsiteInfo()));
-  connect(_save, SIGNAL(clicked()), this, SLOT(sSave()));
-  connect(_vendorItemNumberList, SIGNAL(clicked()), this, SLOT(sVendorItemNumberSearch()));
-  connect(_notesButton, SIGNAL(toggled(bool)), this, SLOT(sHandleButtons()));
-  connect(_listPrices, SIGNAL(clicked()), this, SLOT(sVendorListPrices()));
-  connect(_taxLit, SIGNAL(leftClickedURL(QString)), this, SLOT(sTaxDetail()));  // new slot added for tax url //
-  connect(_extendedPrice, SIGNAL(valueChanged()), this, SLOT(sCalculateTax()));  // new slot added for price //
-  connect(_taxtype, SIGNAL(newID(int)), this, SLOT(sCalculateTax()));            // new slot added for taxtype //
+  connect(_deleteDelivery,       SIGNAL(clicked()),               this, SLOT(sDeleteDelivery()));
+  connect(_editDelivery,         SIGNAL(clicked()),               this, SLOT(sEditDelivery()));
+  connect(_newDelivery,          SIGNAL(clicked()),               this, SLOT(sNewDelivery()));
+  connect(_ordered,              SIGNAL(editingFinished()),       this, SLOT(sDeterminePrice()));
+  connect(_inventoryItem,        SIGNAL(toggled(bool)),           this, SLOT(sInventoryItemToggled(bool)));
+  connect(_item,                 SIGNAL(privateIdChanged(int)),   this, SLOT(sFindWarehouseItemsites(int)));
+  connect(_item,                 SIGNAL(newId(int)),              this, SLOT(sPopulateItemInfo(int)));
+  connect(_warehouse,            SIGNAL(newID(int)),              this, SLOT(sPopulateItemsiteInfo()));
+  connect(_save,                 SIGNAL(clicked()),               this, SLOT(sSave()));
+  connect(_vendorItemNumberList, SIGNAL(clicked()),               this, SLOT(sVendorItemNumberSearch()));
+  connect(_notesButton,          SIGNAL(toggled(bool)),           this, SLOT(sHandleButtons()));
+  connect(_listPrices,           SIGNAL(clicked()),               this, SLOT(sVendorListPrices()));
+  connect(_taxLit,               SIGNAL(leftClickedURL(QString)), this, SLOT(sTaxDetail()));
+  connect(_extendedPrice,        SIGNAL(valueChanged()),          this, SLOT(sCalculateTax()));
+  connect(_taxtype,              SIGNAL(newID(int)),              this, SLOT(sCalculateTax()));
 
   _bomRevision->setMode(RevisionLineEdit::Use);
   _bomRevision->setType("BOM");
@@ -609,7 +613,7 @@ void purchaseOrderItem::clear()
   _ordered->clear();
   _unitPrice->clear();
   _freight->clear();
-//  _dueDate->clear();
+  _dueDate->clear();
   _notes->clear();
   _project->setId(-1);
   _bomRevision->setId(-1);
@@ -726,7 +730,7 @@ void purchaseOrderItem::sSave()
                                    "<p>Do you wish to Continue or Change the Due Date?" ),
                                QString("&Continue"), QString("Change Order &Due Date"), QString::null, 1, 1 ) == 1)
     {
-      _dueDate->setFocus();
+    _dueDate->setFocus();
       return;
     }
   }
@@ -883,6 +887,79 @@ void purchaseOrderItem::sSave()
   }
   else
     done(_poitemid);
+}
+
+void purchaseOrderItem::sNewDelivery()
+{
+  ParameterList params;
+  params.append("mode", "new");
+  params.append("poitem_id", _poitemid);
+  
+  purchaseOrderDelivery newdlg(this, "", TRUE);
+  newdlg.set(params);
+  newdlg.exec();
+  sFillList();
+}
+
+void purchaseOrderItem::sEditDelivery()
+{
+  ParameterList params;
+  params.append("poitem_id", _deliveries->id());
+  
+  if (_mode == cEdit || _mode == cNew)
+    params.append("mode", "edit");
+  else if (_mode == cView)
+    params.append("mode", "view");
+  
+  purchaseOrderDelivery newdlg(this, "", TRUE);
+  newdlg.set(params);
+  if (newdlg.exec() != XDialog::Rejected)
+    sFillList();
+}
+
+void purchaseOrderItem::sDeleteDelivery()
+{
+  XSqlQuery purchaseDelete;
+  if (QMessageBox::question(this, tr("Delete Purchase Order Delivery?"),
+                            tr("<p>Are you sure you want to delete this "
+                               "Purchase Order Delivery?"),
+                            QMessageBox::Yes,
+                            QMessageBox::No | QMessageBox::Default) == QMessageBox::No)
+    return;
+  
+  purchaseDelete.prepare( "DELETE FROM poitem "
+                         "WHERE (poitem_id=:poitem_id);" );
+  purchaseDelete.bindValue(":poitem_id", _deliveries->id());
+  purchaseDelete.exec();
+  if (purchaseDelete.lastError().type() != QSqlError::NoError)
+  {
+    systemError(this, purchaseDelete.lastError().databaseText(), __FILE__, __LINE__);
+    return;
+  }
+  
+  sFillList();
+}
+
+void purchaseOrderItem::sFillList()
+{
+  XSqlQuery purchaseFillList;
+  MetaSQLQuery mql = mqlLoad("poItems", "deliveries");
+  
+  ParameterList params;
+  params.append("poitem_id", _poitemid);
+  params.append("closed", tr("Closed"));
+  params.append("unposted", tr("Unreleased"));
+  params.append("partial", tr("Partial"));
+  params.append("received", tr("Received"));
+  params.append("open", tr("Open"));
+  
+  purchaseFillList = mql.toQuery(params);
+  _deliveries->populate(purchaseFillList);
+  if (purchaseFillList.lastError().type() != QSqlError::NoError)
+  {
+    systemError(this, purchaseFillList.lastError().databaseText(), __FILE__, __LINE__);
+    return;
+  }
 }
 
 void purchaseOrderItem::sPopulateExtPrice()

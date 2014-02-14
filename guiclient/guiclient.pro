@@ -426,6 +426,7 @@ FORMS =   absoluteCalendarItem.ui               \
 	  projectTypes.ui			\
           prospect.ui                           \
           purchaseOrder.ui                      \
+          purchaseOrderDelivery.ui              \
           purchaseOrderItem.ui                  \
           purchaseRequest.ui                    \
           purgeClosedWorkOrders.ui              \
@@ -1014,6 +1015,7 @@ HEADERS = ../common/format.h                    \
           prospect.h                    \
           prospects.h                   \
           purchaseOrder.h               \
+          purchaseOrderDelivery.h       \
           purchaseOrderItem.h           \
           purchaseRequest.h             \
           purgeClosedWorkOrders.h       \
@@ -1622,6 +1624,7 @@ SOURCES = absoluteCalendarItem.cpp              \
           prospect.cpp                          \
           prospects.cpp                         \
           purchaseOrder.cpp                     \
+          purchaseOrderDelivery.cpp             \
           purchaseOrderItem.cpp                 \
           purchaseRequest.cpp                   \
           purgeClosedWorkOrders.cpp             \

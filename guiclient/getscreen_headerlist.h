@@ -463,6 +463,7 @@
 #include "prospect.h"
 #include "prospects.h"
 #include "purchaseOrder.h"
+#include "purchaseOrderDelivery.h"
 #include "purchaseOrderItem.h"
 #include "purchaseRequest.h"
 #include "purgeClosedWorkOrders.h"
