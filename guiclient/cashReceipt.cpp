@@ -83,6 +83,14 @@ cashReceipt::cashReceipt(QWidget* parent, const char* name, Qt::WFlags fl)
     connect(_downCC, SIGNAL(clicked()), this, SLOT(sMoveDown()));
     connect(_fundsType, SIGNAL(activated(int)), this, SLOT(setCreditCard()));
   }
+  if(_metrics->boolean("AltCashExchangeRate"))
+  {
+    _gainLoss->setValidator(omfgThis->negMoneyVal());
+    connect(_received, SIGNAL(effectiveChanged(const QDate&)), this, SLOT(sSetAltExchRate()));
+    connect(_received, SIGNAL(idChanged(int)), this, SLOT(sSetAltExchRate()));
+    connect(_received, SIGNAL(valueChanged()), this, SLOT(sSetAltExchRate()));
+    connect(_exchRate, SIGNAL(editingFinished()), this, SLOT(sHandleAltExchRate()));
+  }
 
   QButtonGroup * bg = new QButtonGroup(this);
   bg->addButton(_balCreditMemo);
@@ -234,6 +242,9 @@ enum SetResponse cashReceipt::set(const ParameterList &pParams)
       _add->setEnabled(FALSE);
       _balCreditMemo->setEnabled(false);
       _balCustomerDeposit->setEnabled(false);
+      _altExchRate->setEnabled(false);
+      _exchRate->setEnabled(false);
+      _gainLoss->setEnabled(false);
       _save->hide();
       _close->setText(tr("&Close"));
       _altAccnt->setEnabled(false);
@@ -907,6 +918,7 @@ void cashReceipt::populate()
     {
       _altExchRate->setChecked(TRUE);
       _exchRate->setDouble(cashpopulate.value("cashrcpt_alt_curr_rate").toDouble());
+      sHandleAltExchRate();
     }
     if(cashpopulate.value("cashrcpt_usecustdeposit").toBool())
       _balCustomerDeposit->setChecked(true);
@@ -1107,4 +1119,35 @@ void cashReceipt::sDateChanged()
     _applyBalLit->setText(tr("Record Receipt as:"));
   else
     _applyBalLit->setText(tr("Apply Balance As:"));
+}
+
+void cashReceipt::sSetAltExchRate()
+{
+  double _sysExchRate = 1.0;
+  XSqlQuery currRate;
+  currRate.prepare("SELECT currRate(:curr_id, :curr_date) AS exchrate;");
+  currRate.bindValue(":curr_id", _received->id());
+  currRate.bindValue(":curr_date", _received->effective());
+  currRate.exec();
+  if (currRate.first())
+  {
+    _sysExchRate = currRate.value("exchrate").toDouble();
+    _exchRate->setDouble(_sysExchRate);
+    _gainLoss->setDouble(0.0);
+  }
+}
+
+void cashReceipt::sHandleAltExchRate()
+{
+  double _sysExchRate = 1.0;
+  XSqlQuery currRate;
+  currRate.prepare("SELECT currRate(:curr_id, :curr_date) AS exchrate;");
+  currRate.bindValue(":curr_id", _received->id());
+  currRate.bindValue(":curr_date", _received->effective());
+  currRate.exec();
+  if (currRate.first())
+  {
+    _sysExchRate = currRate.value("exchrate").toDouble();
+    _gainLoss->setDouble((_sysExchRate - _exchRate->toDouble()) * _received->baseValue());
+  }
 }
