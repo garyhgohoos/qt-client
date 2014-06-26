@@ -1282,6 +1282,7 @@ void salesOrderItem::sSave(bool pPartial)
     }
   }
 
+  // Update supply order characteristics
   if ( (_mode != cView) && (_mode != cViewQuote) )
   {
     if (_supplyOrderId != -1 && !_item->isConfigured())
@@ -1327,12 +1328,20 @@ void salesOrderItem::sSave(bool pPartial)
           }
         }
         
-        if (changed &&
-            QMessageBox::question(this, tr("Change Characteristics?"),
-                                  tr("<p>Should the characteristics for the "
-                                     "associated supply order be updated?"),
-                                  QMessageBox::Yes | QMessageBox::Default,
-                                  QMessageBox::No  | QMessageBox::Escape) == QMessageBox::Yes)
+        bool applychange = false;
+        if (changed)
+        {
+          if (_mode == cNew)
+            applychange = true;
+          else if (QMessageBox::question(this, tr("Change Characteristics?"),
+                                         tr("<p>Should the characteristics for the "
+                                            "associated supply order be updated?"),
+                                         QMessageBox::Yes | QMessageBox::Default,
+                                         QMessageBox::No  | QMessageBox::Escape) == QMessageBox::Yes)
+            applychange = true;
+        }
+
+        if (applychange)
         {
           salesSave.prepare("SELECT updateCharAssignment(:target_type, :target_id, :char_id, :char_value) AS result;");
           
