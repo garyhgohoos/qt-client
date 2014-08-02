@@ -25,8 +25,10 @@ dspBriefSalesHistory::dspBriefSalesHistory(QWidget* parent, const char*, Qt::WFl
   setMetaSQLOptions("briefSalesHistory", "detail");
   setParameterWidgetVisible(true);
 
-  parameterWidget()->append(tr("Start Date"), "startDate", ParameterWidget::Date, QDate::currentDate(), true  );
-  parameterWidget()->append(tr("End Date"),   "endDate",   ParameterWidget::Date, QDate::currentDate(), true);
+  parameterWidget()->append(tr("Invoice Start Date"), "startDate", ParameterWidget::Date, QDate::currentDate());
+  parameterWidget()->append(tr("Invoice End Date"),   "endDate",   ParameterWidget::Date, QDate::currentDate());
+  parameterWidget()->append(tr("Ship Start Date"), "shipStartDate", ParameterWidget::Date);
+  parameterWidget()->append(tr("Ship End Date"),   "shipEndDate",   ParameterWidget::Date);
   parameterWidget()->append(tr("Customer"),   "cust_id",   ParameterWidget::Customer);
   parameterWidget()->append(tr("Customer Ship-to"),   "shipto_id",   ParameterWidget::Shipto);
   parameterWidget()->appendComboBox(tr("Customer Group"), "custgrp_id", XComboBox::CustomerGroups);
@@ -37,6 +39,9 @@ dspBriefSalesHistory::dspBriefSalesHistory(QWidget* parent, const char*, Qt::WFl
   parameterWidget()->appendComboBox(tr("Product Category"), "prodcat_id", XComboBox::ProductCategories);
   parameterWidget()->append(tr("Product Category Pattern"), "prodcat_pattern", ParameterWidget::Text);
   parameterWidget()->appendComboBox(tr("Sales Rep."), "salesrep_id", XComboBox::SalesReps);
+  parameterWidget()->appendComboBox(tr("Shipping Zone"), "shipzone_id", XComboBox::ShippingZones);
+  parameterWidget()->appendComboBox(tr("Sale Type"), "saletype_id", XComboBox::SaleTypes);
+  parameterWidget()->append(tr("Include Misc. Items"), "includeMisc", ParameterWidget::Exists, true);
   if (_metrics->boolean("MultiWhs"))
     parameterWidget()->append(tr("Site"), "warehous_id", ParameterWidget::Site);
 
@@ -73,6 +78,7 @@ bool dspBriefSalesHistory::setParams(ParameterList & params)
   if (_privileges->check("ViewCustomerPrices"))
     params.append("showPrices");
   params.append("credit", "Credit");
+  params.append("return", "Return");
   
   return true;
 }

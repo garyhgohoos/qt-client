@@ -178,6 +178,7 @@ bool dspSalesHistory::setParams(ParameterList & params)
   if (_privileges->check("ViewCustomerPrices"))
     params.append("showPrices");
   params.append("credit", "Credit");
+  params.append("return", "Return");
 
   return true;
 }
