@@ -20,11 +20,11 @@
  *  true to construct a modal dialog.
  */
 purgeClosedWorkOrders::purgeClosedWorkOrders(QWidget* parent, const char* name, bool modal, Qt::WFlags fl)
-    : XDialog(parent, name, modal, fl)
+: XDialog(parent, name, modal, fl)
 {
   setupUi(this);
-
-
+  
+  
   // signals and slots connections
   connect(_close, SIGNAL(clicked()), this, SLOT(reject()));
   connect(_purge, SIGNAL(clicked()), this, SLOT(sPurge()));
@@ -55,21 +55,21 @@ void purgeClosedWorkOrders::sPurge()
   if (_cutOffDate->isValid())
   {
     if (_warehouse->isAll())
-      purgePurge.prepare("SELECT MIN(deleteWo(wo_id, false)) AS result"
-                "  FROM wo"
-                " WHERE ((wo_status = 'C')"
-                "   AND  (wo_duedate <= :cutoffDate))");
+      purgePurge.prepare("SELECT MIN(deleteWo(wo_id, false, true)) AS result"
+                         "  FROM wo"
+                         " WHERE ((wo_status = 'C')"
+                         "   AND  (wo_duedate <= :cutoffDate))");
     else
-      purgePurge.prepare("SELECT MIN(deleteWo(wo_id, false)) AS result"
-                "  FROM wo, itemsite"
-                " WHERE ((wo_status = 'C')"
-                "   AND  (wo_duedate <= :cutoffDate)"
-                "   AND  (wo_itemsite_id = itemsite_id)"
-                "   AND  (itemsite_warehous_id = :whs_id))");
+      purgePurge.prepare("SELECT MIN(deleteWo(wo_id, false, true)) AS result"
+                         "  FROM wo, itemsite"
+                         " WHERE ((wo_status = 'C')"
+                         "   AND  (wo_duedate <= :cutoffDate)"
+                         "   AND  (wo_itemsite_id = itemsite_id)"
+                         "   AND  (itemsite_warehous_id = :whs_id))");
     purgePurge.bindValue(":cutoffDate", _cutOffDate->date());
     purgePurge.bindValue(":whs_id", _warehouse->id());
     purgePurge.exec();
-
+    
     _cutOffDate->clear();
     _cutOffDate->setFocus();
   }
