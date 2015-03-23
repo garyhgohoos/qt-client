@@ -70,6 +70,7 @@ public slots:
     virtual void sEditItemtax();
     virtual void sDeleteItemtax();
     virtual void sFillListItemtax();
+    virtual void sHandleUOMButtons();
     virtual void sNewUOM();
     virtual void sEditUOM();
     virtual void sDeleteUOM();

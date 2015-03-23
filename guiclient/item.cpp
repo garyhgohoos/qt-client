@@ -21,6 +21,7 @@
 #include <QVariant>
 
 #include <metasql.h>
+#include "mqlutil.h"
 #include <openreports.h>
 
 #include "bom.h"
@@ -79,6 +80,7 @@ item::item(QWidget* parent, const char* name, Qt::WFlags fl)
   connect(_itemtaxNew, SIGNAL(clicked()), this, SLOT(sNewItemtax()));
   connect(_itemtaxEdit, SIGNAL(clicked()), this, SLOT(sEditItemtax()));
   connect(_itemtaxDelete, SIGNAL(clicked()), this, SLOT(sDeleteItemtax()));
+  connect(_uomconv, SIGNAL(itemSelectionChanged()), this, SLOT(sHandleUOMButtons()));
   connect(_newUOM, SIGNAL(clicked()), this, SLOT(sNewUOM()));
   connect(_editUOM, SIGNAL(clicked()), this, SLOT(sEditUOM()));
   connect(_deleteUOM, SIGNAL(clicked()), this, SLOT(sDeleteUOM()));
@@ -296,8 +298,6 @@ enum SetResponse item::set(const ParameterList &pParams)
 
       connect(_charass, SIGNAL(valid(bool)), _editCharacteristic, SLOT(setEnabled(bool)));
       connect(_charass, SIGNAL(valid(bool)), _deleteCharacteristic, SLOT(setEnabled(bool)));
-      connect(_uomconv, SIGNAL(valid(bool)), _editUOM, SLOT(setEnabled(bool)));
-      connect(_uomconv, SIGNAL(valid(bool)), _deleteUOM, SLOT(setEnabled(bool)));
       connect(_itemalias, SIGNAL(valid(bool)), _editAlias, SLOT(setEnabled(bool)));
       connect(_itemalias, SIGNAL(valid(bool)), _deleteAlias, SLOT(setEnabled(bool)));
       connect(_itemsub, SIGNAL(valid(bool)), _editSubstitute, SLOT(setEnabled(bool)));
@@ -318,8 +318,6 @@ enum SetResponse item::set(const ParameterList &pParams)
 
       connect(_charass, SIGNAL(valid(bool)), _editCharacteristic, SLOT(setEnabled(bool)));
       connect(_charass, SIGNAL(valid(bool)), _deleteCharacteristic, SLOT(setEnabled(bool)));
-      connect(_uomconv, SIGNAL(valid(bool)), _editUOM, SLOT(setEnabled(bool)));
-      connect(_uomconv, SIGNAL(valid(bool)), _deleteUOM, SLOT(setEnabled(bool)));
       connect(_itemalias, SIGNAL(valid(bool)), _editAlias, SLOT(setEnabled(bool)));
       connect(_itemalias, SIGNAL(valid(bool)), _deleteAlias, SLOT(setEnabled(bool)));
       connect(_itemsub, SIGNAL(valid(bool)), _editSubstitute, SLOT(setEnabled(bool)));
@@ -678,17 +676,28 @@ void item::sSave()
     return;
   
   // look for all of the uom ids we have associated with this item
+  // and any global conversions of inventory uom
   QStringList knownunits;
-  itemSave.prepare("SELECT :uom_id AS uom_id "
-            "UNION "
-            "SELECT itemuomconv_from_uom_id "
-            "FROM itemuomconv "
-            "WHERE (itemuomconv_item_id=:item_id) "
-            "UNION "
-            "SELECT itemuomconv_to_uom_id "
-            "FROM itemuomconv "
-            "WHERE (itemuomconv_item_id=:item_id);"
-           );
+  itemSave.prepare("SELECT DISTINCT uom_id"
+                   "  FROM ("
+                   "SELECT :uom_id AS uom_id"
+                   " UNION "
+                   "SELECT itemuomconv_from_uom_id AS uom_id"
+                   "  FROM itemuomconv"
+                   " WHERE (itemuomconv_item_id=:item_id)"
+                   " UNION "
+                   "SELECT itemuomconv_to_uom_id AS uom_id"
+                   "  FROM itemuomconv"
+                   " WHERE (itemuomconv_item_id=:item_id)"
+                   " UNION "
+                   "SELECT uomconv_from_uom_id AS uom_id"
+                   "  FROM uomconv"
+                   " WHERE (uomconv_to_uom_id=:uom_id)"
+                   " UNION "
+                   "SELECT uomconv_to_uom_id AS uom_id"
+                   "  FROM uomconv"
+                   " WHERE (uomconv_from_uom_id=:uom_id)"
+                   " ) AS data;");
   itemSave.bindValue(":item_id", _itemid);
   itemSave.bindValue(":uom_id", _inventoryUOM->id());
   itemSave.exec();
@@ -1797,6 +1806,23 @@ void item::sFillListItemtax()
   }
 }
 
+void item::sHandleUOMButtons()
+{
+  if((_mode == cNew || _mode == cEdit))
+  {
+    if (_uomconv->currentItem() && _uomconv->currentItem()->rawValue("global") == false)
+    {
+      _editUOM->setEnabled(true);
+      _deleteUOM->setEnabled(true);
+    }
+    else
+    {
+      _editUOM->setEnabled(false);
+      _deleteUOM->setEnabled(false);
+    }
+  }
+}
+
 void item::sNewUOM()
 {
   ParameterList params;
@@ -1851,37 +1877,60 @@ void item::sDeleteUOM()
 
 void item::sFillUOMList()
 {
+  _uomconv->clear();
   XSqlQuery itemFillUOMList;
+  // item uom conversions and any global conversions of inventory uom
   itemFillUOMList.prepare("SELECT * FROM ( "
-            "SELECT itemuomconv_id, -1 AS itemuom_id, 0 AS xtindentrole, "
-            "       (nuom.uom_name||'/'||duom.uom_name) AS uomname,"
-            "       (formatUOMRatio(itemuomconv_from_value)||'/'||formatUOMRatio(itemuomconv_to_value)) AS uomvalue,"
-            "       (uomconv_id IS NOT NULL) AS global,"
-            "       itemuomconv_fractional AS fractional"
-            "  FROM item"
-            "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
-            "  JOIN uom AS nuom ON (itemuomconv_from_uom_id=nuom.uom_id)"
-            "  JOIN uom AS duom ON (itemuomconv_to_uom_id=duom.uom_id)"
-            "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
-            "  LEFT OUTER JOIN uomconv ON ((uomconv_from_uom_id=duom.uom_id AND uomconv_to_uom_id=nuom.uom_id)"
-            "                           OR (uomconv_to_uom_id=duom.uom_id AND uomconv_from_uom_id=nuom.uom_id))"
-            " WHERE(item_id=:item_id)"
-            " UNION "
-            " SELECT itemuomconv_id, itemuom_id, 1 AS xtindentrole,"
-            "        uomtype_name AS uomname,"
-            "       '' AS uomvalue,"
-            "       NULL AS global,"
-            "       NULL AS fractional"
-            "  FROM item"
-            "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
-            "  JOIN uom AS nuom ON (itemuomconv_from_uom_id=nuom.uom_id)"
-            "  JOIN uom AS duom ON (itemuomconv_to_uom_id=duom.uom_id)"
-            "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
-            "  JOIN uomtype ON (itemuom_uomtype_id=uomtype_id)"
-            " WHERE (item_id=:item_id)"
-            " ) AS data "
-            " ORDER BY itemuomconv_id, xtindentrole, uomname;");
+                          "SELECT itemuomconv_id, -1 AS itemuom_id, 0 AS xtindentrole, "
+                          "       (nuom.uom_name||'/'||duom.uom_name) AS uomname,"
+                          "       (formatUOMRatio(itemuomconv_from_value)||'/'||formatUOMRatio(itemuomconv_to_value)) AS uomvalue,"
+                          "       FALSE AS global,"
+                          "       itemuomconv_fractional AS fractional"
+                          "  FROM item"
+                          "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
+                          "  JOIN uom AS nuom ON (itemuomconv_from_uom_id=nuom.uom_id)"
+                          "  JOIN uom AS duom ON (itemuomconv_to_uom_id=duom.uom_id)"
+                          "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
+                          " WHERE(item_id=:item_id)"
+                          " UNION "
+                          "SELECT itemuomconv_id, itemuom_id, 1 AS xtindentrole,"
+                          "       uomtype_name AS uomname,"
+                          "       '' AS uomvalue,"
+                          "       NULL AS global,"
+                          "       NULL AS fractional"
+                          "  FROM item"
+                          "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
+                          "  JOIN uom AS nuom ON (itemuomconv_from_uom_id=nuom.uom_id)"
+                          "  JOIN uom AS duom ON (itemuomconv_to_uom_id=duom.uom_id)"
+                          "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
+                          "  JOIN uomtype ON (itemuom_uomtype_id=uomtype_id)"
+                          " WHERE (item_id=:item_id)"
+                          " UNION "
+                          "SELECT uomconv_id AS itemuomconv_id, -1 AS itemuom_id, 0 AS xtindentrole, "
+                          "       (nuom.uom_name||'/'||duom.uom_name) AS uomname,"
+                          "       (formatUOMRatio(uomconv_from_value)||'/'||formatUOMRatio(uomconv_to_value)) AS uomvalue,"
+                          "       TRUE AS global,"
+                          "       uomconv_fractional AS fractional"
+                          "  FROM uomconv"
+                          "  JOIN uom AS nuom ON (uomconv_from_uom_id=nuom.uom_id)"
+                          "  JOIN uom AS duom ON (uomconv_to_uom_id=duom.uom_id)"
+                          " WHERE (uomconv_from_uom_id=:uom_id)"
+                          "    OR (uomconv_to_uom_id=:uom_id)"
+                          " UNION "
+                          "SELECT uomconv_id AS itemuomconv_id, -1 AS itemuom_id, 1 AS xtindentrole, "
+                          "       'Any' AS uomname,"
+                          "       '' AS uomvalue,"
+                          "       TRUE AS global,"
+                          "       NULL AS fractional"
+                          "  FROM uomconv"
+                          "  JOIN uom AS nuom ON (uomconv_from_uom_id=nuom.uom_id)"
+                          "  JOIN uom AS duom ON (uomconv_to_uom_id=duom.uom_id)"
+                          " WHERE (uomconv_from_uom_id=:uom_id)"
+                          "    OR (uomconv_to_uom_id=:uom_id)"
+                          " ) AS data "
+                          " ORDER BY itemuomconv_id, xtindentrole, uomname;");
   itemFillUOMList.bindValue(":item_id", _itemid);
+  itemFillUOMList.bindValue(":uom_id", _inventoryUOM->id());
   itemFillUOMList.exec();
   _uomconv->populate(itemFillUOMList,TRUE);
   _uomconv->expandAll();
@@ -1898,37 +1947,14 @@ void item::sPopulatePriceUOMs()
 {
   XSqlQuery itemPopulatePriceUOMs;
   int pid = _priceUOM->id();
-  itemPopulatePriceUOMs.prepare("SELECT uom_id, uom_name, uom_name"
-            "  FROM uom"
-            " WHERE(uom_id=:uom_id)"
-            " UNION "
-            "SELECT uom_id, uom_name, uom_name"
-            "  FROM uom"
-            "  JOIN itemuomconv ON (itemuomconv_to_uom_id=uom_id)"
-            "  JOIN item ON (itemuomconv_from_uom_id=item_inv_uom_id)"
-            "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
-            "  JOIN uomtype ON (itemuom_uomtype_id=uomtype_id)"
-            " WHERE((itemuomconv_item_id=:item_id)"
-            "   AND (uomtype_name='Selling'))"
-            " UNION "
-            "SELECT uom_id, uom_name, uom_name"
-            "  FROM uom"
-            "  JOIN itemuomconv ON (itemuomconv_from_uom_id=uom_id)"
-            "  JOIN item ON (itemuomconv_to_uom_id=item_inv_uom_id)"
-            "  JOIN itemuom ON (itemuom_itemuomconv_id=itemuomconv_id)"
-            "  JOIN uomtype ON (itemuom_uomtype_id=uomtype_id)"
-            " WHERE((itemuomconv_item_id=:item_id)"
-            "   AND (uomtype_name='Selling'))"
-            " ORDER BY 2;");
-  itemPopulatePriceUOMs.bindValue(":item_id", _itemid);
-  itemPopulatePriceUOMs.bindValue(":uom_id", _inventoryUOM->id());
-  itemPopulatePriceUOMs.exec();
+  // valid price uom's are the inventory uom, any 'selling' item uom conversions of inventory uom,
+  // and any global conversions of inventory uom
+  MetaSQLQuery mql = mqlLoad("uoms", "item");
+  ParameterList params;
+  params.append("item_id", _itemid);
+  params.append("uomtype", "Selling");
+  itemPopulatePriceUOMs = mql.toQuery(params);
   _priceUOM->populate(itemPopulatePriceUOMs, pid);
-  if (itemPopulatePriceUOMs.lastError().type() != QSqlError::NoError)
-  {
-    systemError(this, itemPopulatePriceUOMs.lastError().databaseText(), __FILE__, __LINE__);
-    return;
-  }
 }
 
 void item::closeEvent(QCloseEvent *pEvent)

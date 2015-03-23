@@ -1812,27 +1812,11 @@ void salesOrderItem::sPopulateItemInfo(int pItemid)
   if (pItemid != -1)
   {
     XSqlQuery uom;
-    uom.prepare("SELECT uom_id, uom_name"
-                "  FROM item"
-                "  JOIN uom ON (item_inv_uom_id=uom_id)"
-                " WHERE(item_id=:item_id)"
-                " UNION "
-                "SELECT uom_id, uom_name"
-                "  FROM item"
-                "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
-                "  JOIN uom ON (itemuomconv_to_uom_id=uom_id)"
-                " WHERE((itemuomconv_from_uom_id=item_inv_uom_id)"
-                "   AND (item_id=:item_id))"
-                " UNION "
-                "SELECT uom_id, uom_name"
-                "  FROM item"
-                "  JOIN itemuomconv ON (itemuomconv_item_id=item_id)"
-                "  JOIN uom ON (itemuomconv_from_uom_id=uom_id)"
-                " WHERE((itemuomconv_to_uom_id=item_inv_uom_id)"
-                "   AND (item_id=:item_id))"
-                " ORDER BY uom_name;");
-    uom.bindValue(":item_id", _item->id());
-    uom.exec();
+    MetaSQLQuery mql = mqlLoad("uoms", "item");
+    ParameterList params;
+    params.append("item_id", _item->id());
+    params.append("uomtype", "Selling");
+    uom = mql.toQuery(params);
     _qtyUOM->populate(uom);
     _priceUOM->populate(uom);
 

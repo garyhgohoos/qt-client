@@ -171,13 +171,9 @@ void itemUOM::populate()
   XSqlQuery itempopulate;
   itempopulate.prepare("SELECT itemuomconv_item_id, item_inv_uom_id,"
             "       itemuomconv_from_uom_id, itemuomconv_to_uom_id,"
-            "       itemuomconv_from_value, itemuomconv_to_value, itemuomconv_fractional,"
-            "       (uomconv_id IS NOT NULL) AS global"
+            "       itemuomconv_from_value, itemuomconv_to_value, itemuomconv_fractional"
             "  FROM itemuomconv"
             "  JOIN item ON (itemuomconv_item_id=item_id)"
-            "  LEFT OUTER JOIN uomconv"
-            "    ON ((uomconv_from_uom_id=itemuomconv_from_uom_id AND uomconv_to_uom_id=itemuomconv_to_uom_id)"
-            "     OR (uomconv_to_uom_id=itemuomconv_from_uom_id AND uomconv_from_uom_id=itemuomconv_to_uom_id))"
             " WHERE((itemuomconv_id=:itemuomconv_id));");
   itempopulate.bindValue(":itemuomconv_id", _itemuomconvid);
   itempopulate.exec();
@@ -190,8 +186,6 @@ void itemUOM::populate()
     _fromValue->setDouble(itempopulate.value("itemuomconv_from_value").toDouble());
     _toValue->setDouble(itempopulate.value("itemuomconv_to_value").toDouble());
     _fractional->setChecked(itempopulate.value("itemuomconv_fractional").toBool());
-    _toValue->setEnabled(!itempopulate.value("global").toBool());
-    _fromValue->setEnabled(!itempopulate.value("global").toBool());
 
     sFillList();
   }
@@ -322,13 +316,6 @@ void itemUOM::sCheck()
     _fromValue->setDouble(itemCheck.value("uomconv_from_value").toDouble());
     _toValue->setDouble(itemCheck.value("uomconv_to_value").toDouble());
     _fractional->setChecked(itemCheck.value("uomconv_fractional").toBool());
-    _fromValue->setEnabled(false);
-    _toValue->setEnabled(false);
-  }
-  else
-  {
-    _fromValue->setEnabled(true);
-    _toValue->setEnabled(true);
   }
 
   itemCheck.exec("SELECT nextval('itemuomconv_itemuomconv_id_seq') AS result;");
