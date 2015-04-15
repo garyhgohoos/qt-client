@@ -14,7 +14,7 @@ to be bound by its terms.</comment>
     <x>0</x>
     <y>0</y>
     <width>677</width>
-    <height>600</height>
+    <height>709</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -398,10 +398,25 @@ to be bound by its terms.</comment>
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QLabel" name="_documentsLit">
+     <property name="text">
+      <string>Documents:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Documents" name="_documents"/>
+   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>Documents</class>
+   <extends>QWidget</extends>
+   <header>documents.h</header>
+  </customwidget>
   <customwidget>
    <class>ItemCluster</class>
    <extends>QWidget</extends>

@@ -84,6 +84,8 @@ enum SetResponse characteristic::set(const ParameterList &pParams)
   if (valid)
   {
     _d->charid = param.toInt();
+    emit newId(_d->charid);
+
     populate();
   }
 
@@ -98,11 +100,15 @@ enum SetResponse characteristic::set(const ParameterList &pParams)
       if (characteristicet.first())
         _d->charid = characteristicet.value("char_id").toInt();
 
+      emit newMode(_d->mode);
+      emit newId(_d->charid);
+
       sFillList();
     }
     else if (param.toString() == "edit")
     {
       _d->mode = cEdit;
+      emit newMode(_d->mode);
 // TODO
 //      _mask->setEnabled(FALSE);
 //      _validator->setEnabled(FALSE);
@@ -110,6 +116,7 @@ enum SetResponse characteristic::set(const ParameterList &pParams)
     else if (param.toString() == "view")
     {
       _d->mode = cView;
+      emit newMode(_d->mode);
       _name->setEnabled(false);
       _search->setEnabled(false);
       _useGroup->setEnabled(false);
@@ -141,6 +148,16 @@ enum SetResponse characteristic::set(const ParameterList &pParams)
   }
 
   return NoError;
+}
+
+int characteristic::id() const
+{
+  return _d->charid;
+}
+
+int characteristic::mode() const
+{
+  return _d->mode;
 }
 
 void characteristic::sSave()
@@ -273,6 +290,7 @@ void characteristic::sSave()
   }
 
   _d->charoptModel->submitAll();
+  emit saved(_d->charid);
 
   done(_d->charid);
 }
@@ -292,6 +310,8 @@ void characteristic::sCheck()
     {
       _d->charid = characteristicCheck.value("char_id").toInt();
       _d->mode = cEdit;
+      emit newMode(_d->mode);
+      emit newId(_d->charid);
       populate();
 
       _name->setEnabled(FALSE);
@@ -343,6 +363,7 @@ void characteristic::populate()
   }
 
   sFillList();
+  emit populated();
 }
 
 void characteristic::sFillList()

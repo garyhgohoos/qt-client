@@ -53,6 +53,7 @@ const Documents::DocumentMap Documents::_documentMap[] =
   DocumentMap( Invoice,           "INV",   "invchead_id","invoice"       ),
   DocumentMap( InvoiceItem,       "INVI"),
   DocumentMap( Item,              "I",     "item_id",    "item"          ),
+  DocumentMap( ItemGroup,         "IG",    "itemgrp_id", "itemgrp"       ),
   DocumentMap( ItemSite,          "IS"  ),
   DocumentMap( ItemSource,        "IR",    "itemsrc_id", "itemSource"    ),
   DocumentMap( Location,          "L"   ),
@@ -488,6 +489,7 @@ void Documents::refresh()
               " WHEN (target_type='INV') THEN :invoice "
               " WHEN (target_type='INVI') THEN :invoiceitem "
               " WHEN (target_type='I') THEN :item "
+              " WHEN (target_type='IG') THEN :itemgrp "
               " WHEN (target_type='IS') THEN :itemsite "
               " WHEN (target_type='IR') THEN :itemsrc "
               " WHEN (target_type='L') THEN :location "
@@ -551,6 +553,7 @@ void Documents::refresh()
   query.bindValue(":invoice", tr("Invoice"));
   query.bindValue(":invoiceitem", tr("Invoice Item"));
   query.bindValue(":item", tr("Item"));
+  query.bindValue(":itemgrp", tr("Item Group"));
   query.bindValue(":itemsite", tr("Item Site"));
   query.bindValue(":itemsrc", tr("Item Source"));
   query.bindValue(":location", tr("Location"));

@@ -50,7 +50,10 @@ public:
     	       Tasks  	      = 0x00010000	
              };
 
-public slots:
+    Q_INVOKABLE virtual int id()   const;
+    Q_INVOKABLE virtual int mode() const;
+
+  public slots:
     virtual enum SetResponse set(const ParameterList & pParams );
     virtual void populate();
     virtual void sFillList();
@@ -64,6 +67,12 @@ protected slots:
     virtual void sSave();
     virtual void sCheck();
 
+signals:
+    void populated();
+    void newId(int);
+    void newMode(int);
+    void saved(int);
+  
 
 private:
     characteristicPrivate *_d;

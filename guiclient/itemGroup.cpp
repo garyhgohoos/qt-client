@@ -33,6 +33,8 @@ itemGroup::itemGroup(QWidget* parent, const char* name, Qt::WFlags fl)
 
   _itemgrpparent->addColumn(tr("Name"),        _itemColumn,  Qt::AlignLeft, true, "itemgrp_name" );
   _itemgrpparent->addColumn(tr("Description"), -1,           Qt::AlignLeft, true, "itemgrp_descrip" );
+  
+  _documents->setType(Documents::ItemGroup);
 }
 
 itemGroup::~itemGroup()
@@ -56,6 +58,7 @@ enum SetResponse itemGroup::set(const ParameterList &pParams)
   if (valid)
   {
     _itemgrpid = param.toInt();
+    _documents->setId(_itemgrpid);
     populate();
   }
 
@@ -68,7 +71,10 @@ enum SetResponse itemGroup::set(const ParameterList &pParams)
 
       itemet.exec("SELECT NEXTVAL('itemgrp_itemgrp_id_seq') AS itemgrp_id;");
       if (itemet.first())
+      {
         _itemgrpid = itemet.value("itemgrp_id").toInt();
+        _documents->setId(_itemgrpid);
+      }
 
       sFillList();
 
@@ -112,6 +118,7 @@ void itemGroup::sCheck()
     if (itemCheck.first())
     {
       _itemgrpid = itemCheck.value("itemgrp_id").toInt();
+      _documents->setId(_itemgrpid);
       _mode = cEdit;
       populate();
 
