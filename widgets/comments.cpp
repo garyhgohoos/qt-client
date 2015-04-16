@@ -83,6 +83,7 @@ Comments::Comments(QWidget *pParent, const char *name) :
 {
   setObjectName(name);
   _source = Uninitialized;
+  _customSource = "";
   _sourceid = -1;
   _editable = true;
 
@@ -162,6 +163,11 @@ void Comments::setType(enum CommentSources pSource)
   _source = pSource;
 }
 
+void Comments::setCustomType(QString pSource)
+{
+  _customSource = pSource;
+}
+
 void Comments::setId(int pSourceid)
 {
   _sourceid = pSourceid;
@@ -179,6 +185,8 @@ void Comments::sNew()
   ParameterList params;
   params.append("mode", "new");
   params.append("sourceType", _source);
+  if (_customSource != "")
+    params.append("customSourceType", _customSource);
   params.append("source_id", _sourceid);
 
   comment newdlg(this, "", TRUE);
@@ -197,6 +205,8 @@ void Comments::sView()
   ParameterList params;
   params.append("mode", "view");
   params.append("sourceType", _source);
+  if (_customSource != "")
+    params.append("customSourceType", _customSource);
   params.append("source_id", _sourceid);
   params.append("comment_id", _comment->id());
   params.append("commentIDList", _commentIDList);
@@ -212,6 +222,8 @@ void Comments::sEdit()
   ParameterList params;
   params.append("mode", "edit");
   params.append("sourceType", _source);
+  if (_customSource != "")
+    params.append("customSourceType", _customSource);
   params.append("source_id", _sourceid);
   params.append("comment_id", _comment->id());
   params.append("commentIDList", _commentIDList);
@@ -318,7 +330,10 @@ void Comments::refresh()
     comment.bindValue(":sourceVend", _commentMap[Vendor].ident);
   }
   comment.bindValue(":none", tr("None"));
-  comment.bindValue(":source", _commentMap[_source].ident);
+  if (_customSource != "")
+    comment.bindValue(":source", _customSource);
+  else
+    comment.bindValue(":source", _commentMap[_source].ident);
   comment.bindValue(":sourceid", _sourceid);
   comment.exec();
 

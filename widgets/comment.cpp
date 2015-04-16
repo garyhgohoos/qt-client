@@ -42,6 +42,7 @@ comment::comment( QWidget* parent, const char* name, bool modal, Qt::WindowFlags
   if(modal)
     setWindowModality(Qt::WindowModal);
 
+  _sourceident = "";
   _commentid = -1;
   _targetId = -1;
   _mode = cNew;
@@ -389,6 +390,7 @@ void comment::set(const ParameterList &pParams)
   if (valid)
   {
     _source = (enum Comments::CommentSources)param.toInt();
+    _sourceident = Comments::_commentMap[_source].ident;
     if(!(_mode == cEdit || _mode == cView))
     {
       switch (_source)
@@ -505,6 +507,12 @@ void comment::set(const ParameterList &pParams)
     }
   }
 
+  param = pParams.value("customSourceType", &valid);
+  if (valid)
+  {
+    _sourceident = param.toString();
+  }
+  
   param = pParams.value("source_id", &valid);
   if (valid)
   {
@@ -531,7 +539,7 @@ void comment::sSave()
   {
     _query.prepare("SELECT postComment(:cmnttype_id, :source, :source_id, :text, :public) AS result;");
     _query.bindValue(":cmnttype_id", _cmnttype->id());
-    _query.bindValue(":source", Comments::_commentMap[_source].ident);
+    _query.bindValue(":source", _sourceident);
     _query.bindValue(":source_id", _targetId);
     _query.bindValue(":text", _comment->toPlainText().trimmed());
     _query.bindValue(":public", _public->isChecked());

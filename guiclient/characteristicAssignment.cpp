@@ -202,6 +202,37 @@ enum SetResponse characteristicAssignment::set(const ParameterList &pParams)
     handleTargetType();
   }
 
+  // custom table support
+  param = pParams.value("custom_id", &valid);
+  if (valid)
+  {
+    _targetId = param.toInt();
+  }
+  
+  param = pParams.value("custom_type", &valid);
+  if (valid)
+  {
+    _targetType = param.toString();
+  }
+
+  param = pParams.value("custom_title", &valid);
+  if (valid)
+  {
+    setWindowTitle(param.toString());
+  }
+  
+  param = pParams.value("custom_query", &valid);
+  if (valid)
+  {
+    QSqlQueryModel *model = new QSqlQueryModel;
+    model->setQuery(param.toString());
+    _char->setModel(model);
+    _char->setModelColumn(1); // char_name
+    sHandleChar();
+  }
+  
+  // end custom table support
+  
   param = pParams.value("charass_id", &valid);
   if (valid)
   {
@@ -456,7 +487,7 @@ void characteristicAssignment::handleTargetType()
   if(_targetType != "I")
     _listprice->hide();
 
-  QString boolColumn;
+  QString boolColumn="";
   if ((_targetType == "C") || (_targetType == "CT"))
   {
     setWindowTitle(tr("Customer Characteristic"));
@@ -548,12 +579,15 @@ void characteristicAssignment::handleTargetType()
     boolColumn = "char_vouchers";
   }
 
-  QSqlQueryModel *model = new QSqlQueryModel;
-  model->setQuery("SELECT char_id, char_name, char_type"
-                  "  FROM char WHERE " + boolColumn +
-                  " ORDER BY char_order, char_name");
-  _char->setModel(model);
-  _char->setModelColumn(1); // char_name
-  sHandleChar();
+  if (boolColumn != "")
+  {
+    QSqlQueryModel *model = new QSqlQueryModel;
+    model->setQuery("SELECT char_id, char_name, char_type"
+                    "  FROM char WHERE " + boolColumn +
+                    " ORDER BY char_order, char_name");
+    _char->setModel(model);
+    _char->setModelColumn(1); // char_name
+    sHandleChar();
+  }
 }
 

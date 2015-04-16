@@ -77,6 +77,7 @@ class XTUPLEWIDGETS_EXPORT Comments : public QWidget
 
   public slots:
     void setType(enum CommentSources);
+    void setCustomType(QString);
     void setId(int);
     void setReadOnly(bool);
     void setVerboseCommentList(bool);
@@ -101,6 +102,7 @@ class XTUPLEWIDGETS_EXPORT Comments : public QWidget
     QList<QVariant> _commentIDList;
     bool _verboseCommentList;
     bool _editable;
+    QString _customSource;
 
     QTextBrowser *_browser;
     XTreeWidget *_comment;

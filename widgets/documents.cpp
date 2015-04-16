@@ -88,6 +88,7 @@ Documents::Documents(QWidget *pParent) :
   setupUi(this);
   
   _source = Uninitialized;
+  _customSource = "";
   _sourceid = -1;
   _readOnly = false;
 
@@ -147,6 +148,11 @@ Documents::Documents(QWidget *pParent) :
 void Documents::setType(enum DocumentSources pSource)
 {
   _source = pSource;
+}
+
+void Documents::setCustomType(QString pSource)
+{
+  _customSource = pSource;
 }
 
 void Documents::setId(int pSourceid)
@@ -400,6 +406,8 @@ void Documents::sAttachDoc()
 {
   ParameterList params;
   params.append("sourceType", _source);
+  if (_customSource != "")
+    params.append("customSourceType", _customSource);
   params.append("source_id", _sourceid);
 
   docAttach newdlg(this, "", TRUE);
@@ -583,7 +591,10 @@ void Documents::refresh()
   query.bindValue(":url", tr("URL"));
   query.bindValue(":file", tr("File"));
 
-  query.bindValue(":source", _documentMap[_source].ident);
+  if (_customSource != "")
+    query.bindValue(":source", _customSource);
+  else
+    query.bindValue(":source", _documentMap[_source].ident);
   query.bindValue(":sourceid", _sourceid);
   query.exec();
   _doc->populate(query,TRUE);

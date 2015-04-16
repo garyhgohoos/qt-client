@@ -41,6 +41,7 @@ private:
     QString _targettype;
     QString _purpose;
     QString _mode;
+    QString _sourceident;
 };
 
 #endif // docAttach_H

@@ -53,6 +53,7 @@ docAttach::docAttach(QWidget* parent, const char* name, bool modal, Qt::WFlags f
   _targetid = -1;
   _urlid = -1;
   _mode = "new";
+  _sourceident = "";
 
   _po->setAllowedTypes(OrderLineEdit::Purchase);
   _so->setAllowedTypes(OrderLineEdit::Sales);
@@ -94,8 +95,18 @@ void docAttach::set(const ParameterList &pParams)
   //source type from document widget
   param = pParams.value("sourceType", &valid);
   if (valid)
+  {
     _source = (enum Documents::DocumentSources)param.toInt();
+    _sourceident = Documents::_documentMap[_source].ident;
+  }
 
+  //custom source type from document widget
+  param = pParams.value("customSourceType", &valid);
+  if (valid)
+  {
+    _sourceident = param.toString();
+  }
+  
   //source id from document widget
   param = pParams.value("source_id", &valid);
   if (valid)
@@ -448,7 +459,7 @@ void docAttach::sSave()
     newDocass.bindValue(":docass_target_type", _targettype);
   }
 
-  if (_targettype == Documents::_documentMap[_source].ident &&
+  if (_targettype == _sourceident &&
       _targetid == _sourceid)
   {
     QMessageBox::critical(this,tr("Invalid Selection"),
@@ -456,7 +467,7 @@ void docAttach::sSave()
     return;
   }
 
-  newDocass.bindValue(":docass_source_type", Documents::_documentMap[_source].ident);
+  newDocass.bindValue(":docass_source_type", _sourceident);
   newDocass.bindValue(":docass_source_id", _sourceid);
   newDocass.bindValue(":docass_target_id", _targetid);
   newDocass.bindValue(":docass_purpose", _purpose);

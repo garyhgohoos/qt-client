@@ -86,6 +86,7 @@ class XTUPLEWIDGETS_EXPORT Documents : public QWidget, public Ui::documents
 
   public slots:
     void setType(enum DocumentSources);
+    void setCustomType(QString);
     void setId(int);
     void setReadOnly(bool);
     void sNewDoc(QString type, QString ui);
@@ -111,6 +112,7 @@ class XTUPLEWIDGETS_EXPORT Documents : public QWidget, public Ui::documents
     enum DocumentSources _source;
     int                  _sourceid;
     bool                 _readOnly;
+    QString              _customSource;
 
 };
 
