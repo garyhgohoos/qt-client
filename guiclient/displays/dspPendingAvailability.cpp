@@ -49,6 +49,7 @@ dspPendingAvailability::dspPendingAvailability(QWidget* parent, const char*, Qt:
   list()->addColumn(tr("Total Alloc."), _qtyColumn,  Qt::AlignRight,  true,  "totalalloc"  );
   list()->addColumn(tr("QOH"),          _qtyColumn,  Qt::AlignRight,  true,  "qoh"  );
   list()->addColumn(tr("Availability"), _qtyColumn,  Qt::AlignRight,  true,  "totalavail"  );
+//  list()->setPopulateLinear();
 
   //If not multi-warehouse hide whs control
   if (!_metrics->boolean("MultiWhs"))
