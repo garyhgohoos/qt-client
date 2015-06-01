@@ -90,10 +90,8 @@ enum SetResponse copyItem::set(const ParameterList &pParams)
 
 void copyItem::sSaveItem()
 {
-  if(_source->id() == -1)
+  if(!_source->isValid())
     return;
-
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sSaveItem, sourceid=%1.").arg(_source->id()));
 
   XSqlQuery itemsave;
   if(_inTransaction)
@@ -149,17 +147,12 @@ void copyItem::sSaveItem()
     _inTransaction = false;
     return;
   }
-  
-  sCopyBom();
-  sCopyItemsite();
 }
 
 void copyItem::sCopyBom()
 {
-  if(_source->id() == -1 || _newitemid == -1)
+  if(!_source->isValid() || _newitemid == -1)
     return;
-  
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sCopyBom."));
   
   if (_copyBOM->isChecked())
   {
@@ -200,8 +193,6 @@ void copyItem::sAddBomitem()
     return;
   }
 
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sAddBomItem."));
-  
   XSqlQuery bomitemq;
   int uomid;
   QString uomname;
@@ -268,8 +259,6 @@ void copyItem::sEditBomitem()
     return;
   }
   
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sEditBomItem."));
-  
   ParameterList params;
   params.append("mode", "edit");
   params.append("bomitem_id", _addedbomitems->id());
@@ -289,8 +278,6 @@ void copyItem::sRevokeBomitem()
     return;
   }
   
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sRevokeBomItem."));
-  
   XSqlQuery bomitemq;
   bomitemq.prepare("DELETE FROM bomitem WHERE (bomitem_id=:bomitemid);");
   bomitemq.bindValue(":bomitemid", _addedbomitems->id());
@@ -306,8 +293,6 @@ void copyItem::sFillItem()
 {
   if (_searchForBOM->text().length() < 3)
     return;
-  
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sFillItem."));
   
   _availablebomitems->clear();
   XSqlQuery bomitemq;
@@ -327,8 +312,6 @@ void copyItem::sFillItem()
 
 void copyItem::sFillBomitem()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sFillBomItem."));
-  
   _addedbomitems->clear();
   XSqlQuery bomitemq;
   bomitemq.prepare("SELECT bomitem_id, item_number, item_descrip1, bomitem_qtyper "
@@ -376,10 +359,8 @@ void copyItem::sFillBomitem()
 
 void copyItem::sCopyItemsite()
 {
-  if(_source->id() == -1 || _newitemid == -1)
+  if(!_source->isValid() || _newitemid == -1)
     return;
-  
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sCopyItemsite."));
   
   if (_copyItemsite->isChecked())
   {
@@ -418,8 +399,6 @@ void copyItem::sAddItemsite()
     QMessageBox::critical(this, tr("Error"), tr("Please select an Item Site."));
     return;
   }
-  
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sAddItemsite."));
   
   XSqlQuery itemCopy;
   itemCopy.prepare("SELECT copyItemSite(:olditemsiteid, NULL) AS result;");
@@ -470,8 +449,6 @@ void copyItem::sAddItemsite()
 
 void copyItem::sEditItemsite()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sEditItemsite."));
-  
   ParameterList params;
   params.append("mode", "edit");
   params.append("itemsite_id", _addeditemsites->id());
@@ -489,8 +466,6 @@ void copyItem::sRevokeItemsite()
     return;
   }
   
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sRevokeItemsite."));
-  
   XSqlQuery itemsiteq;
   itemsiteq.prepare("DELETE FROM itemsite WHERE (itemsite_id=:itemsiteid);");
   itemsiteq.bindValue(":itemsiteid", _addeditemsites->id());
@@ -504,8 +479,6 @@ void copyItem::sRevokeItemsite()
 
 void copyItem::sFillItemsite()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sFillItemsite."));
-  
   _addeditemsites->clear();
   XSqlQuery itemsiteq;
   itemsiteq.prepare("SELECT itemsite_id, item_number, warehous_code, warehous_descrip "
@@ -523,8 +496,6 @@ void copyItem::sFillItemsite()
 
 bool copyItem::okToSave()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting okToSave."));
-  
   XSqlQuery copyokToSave;
   _targetItemNumber->setText(_targetItemNumber->text().trimmed().toUpper());
 
@@ -558,8 +529,6 @@ bool copyItem::okToSave()
 
 void copyItem::sCopy()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting sCopy."));
-  
   XSqlQuery copyCopy;
   if (! okToSave())
     return;
@@ -681,8 +650,6 @@ void copyItem::sCopy()
 
 void copyItem::clear()
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting clear."));
-  
   _source->setId(-1);
   _targetItemNumber->clear();
   _targetItemDescrip->clear();
@@ -697,8 +664,6 @@ void copyItem::clear()
 
 void copyItem::closeEvent(QCloseEvent *pEvent)
 {
-  QMessageBox::critical(this, tr("Debug"), tr("Starting closeEvent."));
-  
   XSqlQuery itemcloseEvent;
   if(_inTransaction)
   {
