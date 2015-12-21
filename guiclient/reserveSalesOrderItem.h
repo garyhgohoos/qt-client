@@ -47,6 +47,7 @@ private:
   
     int _soitemid;
     int _itemsiteid;
+    double _invuomratio;
     QString _controlMethod;
 
 };

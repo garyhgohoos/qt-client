@@ -238,10 +238,11 @@ void reserveSalesOrderItem::populate()
                 "       coitem_qtyord AS ordered,"
                 "       (coitem_qtyshipped - coitem_qtyreturned) AS shipped,"
                 "       qtyAtShipping(coitem_id) AS atShipping,"
-                "       (coitem_qtyreserved / coitem_qty_invuomratio) AS reserved,"
+                "       coitem_qtyreserved AS reserved,"
+                "       coitem_qty_invuomratio,"
                 "       noNeg(coitem_qtyord - coitem_qtyshipped +"
                 "             coitem_qtyreturned - qtyAtShipping(coitem_id) -"
-                "             (coitem_qtyreserved / coitem_qty_invuomratio)) AS balance "
+                "             coitem_qtyreserved) AS balance "
                 "FROM coitem JOIN cohead ON (cohead_id=coitem_cohead_id)"
                 "            JOIN itemsite ON (itemsite_id=coitem_itemsite_id)"
                 "            JOIN item ON (item_id=itemsite_item_id)"
@@ -256,6 +257,7 @@ void reserveSalesOrderItem::populate()
   if (itemq.first())
   {
     _itemsiteid = itemq.value("itemsite_id").toInt();
+    _invuomratio = itemq.value("coitem_qty_invuomratio").toDouble();
     _salesOrderNumber->setText(itemq.value("order_number").toString());
     _salesOrderLine->setText(itemq.value("coitem_linenumber").toString());
     _item->setId(itemq.value("item_id").toInt());
@@ -358,6 +360,7 @@ void reserveSalesOrderItem::sUnreserveLocation()
 {
   XTreeWidgetItem *item = (XTreeWidgetItem*)_itemloc->currentItem();
   double locreserve = QLocale().toDouble(item->text(3));
+  locreserve = (locreserve / _invuomratio);
   bool ok;
   locreserve = QInputDialog::getDouble(this, tr("Qty. to Unreserve"),
                                        tr("Qty:"),
