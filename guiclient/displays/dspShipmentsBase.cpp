@@ -72,7 +72,7 @@ enum SetResponse dspShipmentsBase::set(const ParameterList &pParams)
   {
     _salesOrder->setId(param.toInt());
     _salesOrder->setEnabled(false);
-    fillList();
+    setQueryOnStartEnabled(true);
   }
 
   param = pParams.value("shiphead_id", &valid);
@@ -80,7 +80,7 @@ enum SetResponse dspShipmentsBase::set(const ParameterList &pParams)
   {
     _shipment->setId(param.toInt());
     _shipment->setEnabled(false);
-    fillList();
+    setQueryOnStartEnabled(true);
   }
 
   return NoError;
