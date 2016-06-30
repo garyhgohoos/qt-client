@@ -62,7 +62,7 @@ enum SetResponse dspSalesOrderStatus::set(const ParameterList &pParams)
   if (valid)
   {
     _so->setId(param.toInt());
-    setQueryOnStartEnabled(true);
+    sFillList();
   }
 
   return NoError;
